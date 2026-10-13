@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
-import { Montserrat, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const montserrat = Montserrat({
+// Vendored variable fonts (latin subset). next/font/google was replaced
+// because its Turbopack loader fails the Vercel production build.
+const montserrat = localFont({
+  src: "./fonts/Montserrat-latin.woff2",
   variable: "--font-montserrat",
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: "100 900",
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const jetbrainsMono = localFont({
+  src: "./fonts/JetBrainsMono-latin.woff2",
   variable: "--font-jetbrains-mono",
-  subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: "400 800",
 });
 
 export const metadata: Metadata = {

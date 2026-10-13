@@ -21,6 +21,22 @@ export default function Home() {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  // Silent background refresh: updates data without flashing the skeleton.
+  const refetch = useCallback(() => {
+    const controller = new AbortController();
+    fetchDatasets(controller.signal).then(
+      (rows) => {
+        setDatasets(rows);
+        setStatus("ready");
+        setError(null);
+      },
+      () => {
+        // Keep showing the last good data on background failures.
+      },
+    );
+    return () => controller.abort();
+  }, []);
+
   const load = useCallback(() => {
     setStatus("loading");
     setError(null);
@@ -54,6 +70,18 @@ export default function Home() {
     );
     return () => controller.abort();
   }, []);
+
+  // Refetch when the tab regains focus so admin edits show up.
+  useEffect(() => {
+    window.addEventListener("focus", refetch);
+    return () => window.removeEventListener("focus", refetch);
+  }, [refetch]);
+
+  // Refetch every 60 seconds so admin edits show up without a reload.
+  useEffect(() => {
+    const id = window.setInterval(refetch, 60_000);
+    return () => window.clearInterval(id);
+  }, [refetch]);
 
   return (
     <main className="mx-auto w-full max-w-[1100px] flex-1 px-4 py-8 md:py-12">

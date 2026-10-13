@@ -42,7 +42,7 @@ export function detectColumnType(values: string[]): ColumnType {
   if (dateCount / nonEmpty.length >= 0.9) return "date";
 
   const distinct = new Set(nonEmpty.map((v) => v.trim()));
-  if (distinct.size <= 20 && distinct.size <= Math.max(10, nonEmpty.length * 0.5)) {
+  if (distinct.size <= 20 && distinct.size <= Math.max(2, nonEmpty.length * 0.5)) {
     return "categorical";
   }
   return "text";
@@ -99,16 +99,20 @@ export function computeColumnStats(
   return undefined;
 }
 
-/** Rename blank/duplicate headers: "", "col" -> "col", "col_2", ... */
+/** Rename blank/duplicate headers collision-free: "col", "col_2", ... */
 export function sanitizeColumnNames(names: string[]): string[] {
-  const seen = new Map<string, number>();
+  const used = new Set<string>();
   return names.map((raw, i) => {
     let base = raw.trim();
     if (base === "") base = i === 0 ? "col" : `col_${i + 1}`;
-    const count = seen.get(base) ?? 0;
-    seen.set(base, count + 1);
-    if (count === 0) return base;
-    return `${base}_${count + 1}`;
+    let candidate = base;
+    let n = 1;
+    while (used.has(candidate)) {
+      n += 1;
+      candidate = `${base}_${n}`;
+    }
+    used.add(candidate);
+    return candidate;
   });
 }
 
