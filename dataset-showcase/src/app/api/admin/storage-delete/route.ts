@@ -1,5 +1,4 @@
 import type { NextRequest } from "next/server";
-import { ADMIN_COOKIE, verifySession } from "@/lib/auth";
 import { DATASETS_BUCKET, getServiceClient } from "@/lib/supabaseServer";
 
 // Server-generated upload paths look like "<uuid>/<sanitized-name>".
@@ -10,11 +9,6 @@ const PATH_RE = /^[0-9a-fA-F-]{36}\/[^/]{1,100}$/;
  * Storage file (e.g. upload succeeded but the dataset save failed).
  */
 export async function POST(request: NextRequest) {
-  const token = request.cookies.get(ADMIN_COOKIE)?.value;
-  if (!(await verifySession(token))) {
-    return Response.json({ error: "Unauthorized." }, { status: 401 });
-  }
-
   let body: unknown;
   try {
     body = await request.json();

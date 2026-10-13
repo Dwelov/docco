@@ -5,25 +5,16 @@ import { useCallback, useEffect, useState } from "react";
 import type { Dataset } from "@/lib/types";
 import DatasetForm from "./DatasetForm";
 import DatasetList from "./DatasetList";
-import LoginForm from "./LoginForm";
 
 type View = { name: "list" } | { name: "new" } | { name: "edit"; dataset: Dataset };
 
-export default function AdminDashboard({ initialAuthed }: { initialAuthed: boolean }) {
-  const [authed, setAuthed] = useState(initialAuthed);
+export default function AdminDashboard() {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
-  const [loading, setLoading] = useState(initialAuthed);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<View>({ name: "list" });
 
   const refresh = useCallback(async () => {
-    const me = await fetch("/api/admin/me");
-    if (!me.ok) {
-      setAuthed(false);
-      setLoading(false);
-      return;
-    }
-    setAuthed(true);
     const res = await fetch("/api/datasets", { cache: "no-store" });
     if (!res.ok) {
       setError("Could not load datasets.");
@@ -36,28 +27,21 @@ export default function AdminDashboard({ initialAuthed }: { initialAuthed: boole
   }, []);
 
   useEffect(() => {
-    if (!initialAuthed) return;
     let cancelled = false;
     (async () => {
       try {
         await refresh();
       } catch {
-        if (!cancelled) setError("Could not load datasets.");
-      } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setError("Could not load datasets.");
+          setLoading(false);
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [initialAuthed, refresh]);
-
-  async function handleLogout() {
-    await fetch("/api/admin/logout", { method: "POST" });
-    setAuthed(false);
-    setDatasets([]);
-    setView({ name: "list" });
-  }
+  }, [refresh]);
 
   function handleSaved(saved: Dataset) {
     setDatasets((prev) => {
@@ -99,20 +83,6 @@ export default function AdminDashboard({ initialAuthed }: { initialAuthed: boole
     }
   }
 
-  if (!authed) {
-    return (
-      <main className="mx-auto flex w-full max-w-[1100px] flex-1 items-start justify-center px-4 py-12">
-        <LoginForm
-          onSuccess={() => {
-            setLoading(true);
-            setView({ name: "list" });
-            void refresh();
-          }}
-        />
-      </main>
-    );
-  }
-
   const selectedId = view.name === "edit" ? view.dataset.id : null;
 
   return (
@@ -126,13 +96,6 @@ export default function AdminDashboard({ initialAuthed }: { initialAuthed: boole
           >
             View site
           </Link>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="rounded-full border border-gray-300 px-4 py-1.5 text-sm font-medium text-black hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E7490]"
-          >
-            Logout
-          </button>
         </div>
       </div>
       {loading ? (

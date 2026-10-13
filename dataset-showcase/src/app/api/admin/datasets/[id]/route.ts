@@ -1,21 +1,12 @@
 import type { NextRequest } from "next/server";
-import { ADMIN_COOKIE, verifySession } from "@/lib/auth";
 import { DATASETS_BUCKET, getServiceClient } from "@/lib/supabaseServer";
 import { toDataset, validateDatasetInput } from "@/lib/validate-dataset";
-
-async function requireAdmin(request: NextRequest): Promise<boolean> {
-  const token = request.cookies.get(ADMIN_COOKIE)?.value;
-  return verifySession(token);
-}
 
 /** PUT /api/admin/datasets/[id] — partial update; replaces file handling. */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  if (!(await requireAdmin(request))) {
-    return Response.json({ error: "Unauthorized." }, { status: 401 });
-  }
   const { id } = await params;
 
   let body: unknown;
@@ -86,9 +77,6 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  if (!(await requireAdmin(request))) {
-    return Response.json({ error: "Unauthorized." }, { status: 401 });
-  }
   const { id } = await params;
 
   let supabase;

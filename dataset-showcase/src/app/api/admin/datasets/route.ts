@@ -1,15 +1,9 @@
 import type { NextRequest } from "next/server";
-import { ADMIN_COOKIE, verifySession } from "@/lib/auth";
 import { DATASETS_BUCKET, getServiceClient } from "@/lib/supabaseServer";
 import { toDataset, validateDatasetInput } from "@/lib/validate-dataset";
 
 /** POST /api/admin/datasets — create a dataset (position = max + 1). */
 export async function POST(request: NextRequest) {
-  const token = request.cookies.get(ADMIN_COOKIE)?.value;
-  if (!(await verifySession(token))) {
-    return Response.json({ error: "Unauthorized." }, { status: 401 });
-  }
-
   let body: unknown;
   try {
     body = await request.json();

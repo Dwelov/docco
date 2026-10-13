@@ -1,6 +1,6 @@
 # Dataset Showcase
 
-A public, slider-style site that presents CSV datasets — one dataset per slide with its properties and a scrollable preview table — plus a password-protected `/admin` page where a single admin uploads and manages datasets. Anything saved in admin appears for every visitor within about a minute, without redeploying.
+A public, slider-style site that presents CSV datasets — one dataset per slide with its properties and a scrollable preview table — plus an `/admin` page where an admin uploads and manages datasets. Anything saved in admin appears for every visitor within about a minute, without redeploying.
 
 ## Setup
 
@@ -19,8 +19,6 @@ npm run dev                  # http://localhost:3000
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API | Supabase project URL (public, used by browser + server). |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API | Anon key (public). Used only for direct CSV uploads to signed URLs; it cannot read the database (RLS has no public policies). |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → API | Service-role key (**server only**, never `NEXT_PUBLIC_*`). All database and Storage admin access goes through API routes using this key. |
-| `ADMIN_PASSWORD` | You choose | Single admin password for `/admin` (compared in constant time). |
-| `SESSION_SECRET` | `openssl rand -base64 32` | Secret used to sign the `admin_session` JWT (HS256, 12h expiry). |
 
 ## Database & Storage (Supabase)
 
@@ -30,7 +28,7 @@ npm run dev                  # http://localhost:3000
 
 ## How to add a dataset
 
-1. Visit `/admin` and log in with `ADMIN_PASSWORD`.
+1. Visit `/admin`.
 2. Click **New dataset**, drop a `.csv` file (max 50 MB) onto the dropzone or click to browse.
 3. The form auto-fills the title (from the file name), Rows/Columns/File-size properties, the detected column list with types and stats, and a 5-row preview.
 4. Edit the title, description, properties, and per-column descriptions, then **Save dataset**.
@@ -41,7 +39,7 @@ npm run dev                  # http://localhost:3000
 
 1. Push this repo to GitHub.
 2. In the [Vercel dashboard](https://vercel.com/dashboard): **Add New → Project → Import** the repo.
-3. Add the same five environment variables in **Project Settings → Environment Variables**.
+3. Add the same three environment variables in **Project Settings → Environment Variables**.
 4. Deploy. Every `git push` redeploys automatically; content changes via `/admin` need no redeploy.
 
 ## Scripts
@@ -52,7 +50,7 @@ npm run dev                  # http://localhost:3000
 
 ## Assumptions
 
-- Single admin password (no user accounts); sessions last 12 hours.
+- No authentication on `/admin` (single-user assignment); all admin API routes are open.
 - CSV only (`.csv` extension, 50 MB max, first 20 rows previewed, stats from up to 10,000 rows / 50 columns).
 - Proxy/boundary note: Next.js 16 renamed `middleware.ts` to `src/proxy.ts`, and forbids the legacy `export const dynamic = "force-dynamic"` under Cache Components — `/api/datasets` uses `await connection()` plus `Cache-Control: no-store` instead.
 - Fonts are vendored in `src/app/fonts/` and loaded with `next/font/local` (variable Montserrat + JetBrains Mono, latin subset). `next/font/google` is intentionally not used — its Turbopack loader fails the Vercel production build.

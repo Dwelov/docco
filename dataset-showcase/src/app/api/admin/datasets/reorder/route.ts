@@ -1,14 +1,8 @@
 import type { NextRequest } from "next/server";
-import { ADMIN_COOKIE, verifySession } from "@/lib/auth";
 import { getServiceClient } from "@/lib/supabaseServer";
 
 /** POST /api/admin/datasets/reorder — body { ids: string[] }, rewrites position. */
 export async function POST(request: NextRequest) {
-  const token = request.cookies.get(ADMIN_COOKIE)?.value;
-  if (!(await verifySession(token))) {
-    return Response.json({ error: "Unauthorized." }, { status: 401 });
-  }
-
   let body: unknown;
   try {
     body = await request.json();
