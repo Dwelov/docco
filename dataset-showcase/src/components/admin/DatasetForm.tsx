@@ -4,6 +4,8 @@ import { useState } from "react";
 import { getBrowserClient } from "@/lib/supabaseBrowser";
 import { analyzeColumns, formatFileSize, formatRowCount } from "@/lib/csv";
 import type { Column, Dataset, Property } from "@/lib/types";
+import CsvFullView from "@/components/CsvFullView";
+import DataTable from "@/components/DataTable";
 import ColumnsEditor from "./ColumnsEditor";
 import CsvDropzone, { type ParsedCsvFile } from "./CsvDropzone";
 import PropertiesEditor from "./PropertiesEditor";
@@ -44,6 +46,7 @@ export default function DatasetForm({ initial, onSaved, onCancel }: DatasetFormP
   const [formError, setFormError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ kind: "success" | "error"; message: string } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showStoredFull, setShowStoredFull] = useState(false);
 
   function handleParsed(p: ParsedCsvFile) {
     setParsed(p);
@@ -156,9 +159,7 @@ export default function DatasetForm({ initial, onSaved, onCancel }: DatasetFormP
   }
 
   const previewHeaders = parsed ? parsed.headers : (initial?.columns.map((c) => c.name) ?? []);
-  const previewRows = parsed
-    ? parsed.rows.slice(0, 5)
-    : ((initial?.preview_rows ?? []).slice(0, 5) as string[][]);
+  const previewRows: string[][] = parsed ? parsed.rows : (initial?.preview_rows ?? []);
   const showNoFileWarning = isEdit && !initial.file_path && !parsed;
 
   return (
@@ -217,31 +218,47 @@ export default function DatasetForm({ initial, onSaved, onCancel }: DatasetFormP
 
       {previewHeaders.length > 0 ? (
         <div>
-          <span className="mb-1 block text-sm font-medium text-black">Preview (first 5 rows)</span>
-          <div className="max-h-56 overflow-auto rounded-lg border border-gray-200">
-            <table className="w-full border-collapse text-sm">
-              <thead className="sticky top-0 bg-white shadow-[0_1px_0_0_#e5e7eb]">
-                <tr>
-                  {previewHeaders.map((h) => (
-                    <th key={h} scope="col" className="min-w-[120px] px-3 py-1.5 text-left text-[13px] font-semibold text-black">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {previewRows.map((row, r) => (
-                  <tr key={r} className="border-t border-gray-100">
-                    {previewHeaders.map((h, c) => (
-                      <td key={`${r}-${h}`} className="max-w-[220px] truncate px-3 py-1 font-mono text-[13px] text-gray-800" title={row[c] ?? ""}>
-                        {row[c] ?? ""}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="mb-1 flex flex-wrap items-baseline justify-between gap-x-3">
+            <span className="text-sm font-medium text-black">
+              {parsed ? "Preview — all rows" : "Preview — saved sample"}
+            </span>
+            {parsed ? (
+              <span className="text-xs tabular-nums text-gray-500">
+                {formatRowCount(parsed.rowCount)} rows × {formatRowCount(parsed.columnCount)} columns
+              </span>
+            ) : null}
           </div>
+          <div className="overflow-hidden rounded-lg border border-gray-200">
+            {parsed ? (
+              <DataTable
+                key={`${parsed.file.name}:${parsed.file.size}:${parsed.file.lastModified}`}
+                headers={parsed.headers}
+                rows={parsed.rows}
+                maxHeightClass="max-h-80"
+              />
+            ) : showStoredFull && initial?.file_url ? (
+              <CsvFullView
+                url={initial.file_url}
+                fileSizeBytes={initial.file_size_bytes}
+                expectedRows={initial.row_count}
+                columns={initial.columns}
+                maxHeightClass="max-h-80"
+              />
+            ) : (
+              <DataTable headers={previewHeaders} rows={previewRows} maxHeightClass="max-h-80" />
+            )}
+          </div>
+          {!parsed && initial?.file_url ? (
+            <button
+              type="button"
+              onClick={() => setShowStoredFull((v) => !v)}
+              className="mt-1.5 text-xs font-medium text-[#0E7490] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E7490]"
+            >
+              {showStoredFull
+                ? "Show saved sample only"
+                : `Preview all ${formatRowCount(initial.row_count)} rows`}
+            </button>
+          ) : null}
         </div>
       ) : null}
 

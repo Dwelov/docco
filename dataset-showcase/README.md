@@ -30,7 +30,7 @@ npm run dev                  # http://localhost:3000
 
 1. Visit `/admin`.
 2. Click **New dataset**, drop a `.csv` file (max 50 MB) onto the dropzone or click to browse.
-3. The form auto-fills the title (from the file name), Rows/Columns/File-size properties, the detected column list with types and stats, and a 5-row preview.
+3. The form auto-fills the title (from the file name), Rows/Columns/File-size properties, the detected column list with types and stats, and a paginated preview of every row and column in the file.
 4. Edit the title, description, properties, and per-column descriptions, then **Save dataset**.
 5. The dataset appears in the admin list and on the public `/` page (auto-refreshes within 60 s).
 6. Existing datasets can be edited without re-uploading; re-uploading replaces the file and detected data (the old file is deleted). Use ↑/↓ to reorder and **Delete** (with confirmation) to remove a dataset and its file.
@@ -51,7 +51,7 @@ npm run dev                  # http://localhost:3000
 ## Assumptions
 
 - No authentication on `/admin` (single-user assignment); all admin API routes are open.
-- CSV only (`.csv` extension, 50 MB max, first 20 rows previewed, stats from up to 10,000 rows / 50 columns).
+- CSV only (`.csv` extension, 50 MB max). Public visitors see a 20-row sample first; **Preview all N rows** downloads the stored CSV and pages through every row and column. Stats cover up to 10,000 rows / 50 columns.
 - Proxy/boundary note: Next.js 16 renamed `middleware.ts` to `src/proxy.ts`, and forbids the legacy `export const dynamic = "force-dynamic"` under Cache Components — `/api/datasets` uses `await connection()` plus `Cache-Control: no-store` instead.
 - Fonts are vendored in `src/app/fonts/` and loaded with `next/font/local` (variable Montserrat + JetBrains Mono, latin subset). `next/font/google` is intentionally not used — its Turbopack loader fails the Vercel production build.
 
