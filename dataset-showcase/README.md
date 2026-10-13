@@ -55,3 +55,5 @@ npm run dev                  # http://localhost:3000
 - Single admin password (no user accounts); sessions last 12 hours.
 - CSV only (`.csv` extension, 50 MB max, first 20 rows previewed, stats from up to 10,000 rows / 50 columns).
 - Proxy/boundary note: Next.js 16 renamed `middleware.ts` to `src/proxy.ts`, and forbids the legacy `export const dynamic = "force-dynamic"` under Cache Components — `/api/datasets` uses `await connection()` plus `Cache-Control: no-store` instead.
+- Fonts are vendored in `src/app/fonts/` and loaded with `next/font/local` (variable Montserrat + JetBrains Mono, latin subset). `next/font/google` is intentionally not used — its Turbopack loader fails the Vercel production build.
+

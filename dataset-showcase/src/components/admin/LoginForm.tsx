@@ -22,7 +22,15 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
         body: JSON.stringify({ password }),
       });
       if (!res.ok) {
-        setError("Wrong password. Try again.");
+        // Surface the real server error so misconfiguration is visible
+        let msg = "Wrong password. Try again.";
+        try {
+          const body = await res.json() as { error?: string };
+          if (res.status !== 401 && body.error) {
+            msg = `Server error: ${body.error}`;
+          }
+        } catch { /* ignore */ }
+        setError(msg);
         return;
       }
       setPassword("");
